@@ -28,5 +28,8 @@
     "nodemon": "^3.1.14",
     "tsc-watch": "^7.2.0",
     "typescript": "^6.0.2"
+  },
+  "devDependencies": {
+    "tsc-watch": "7.2.0"
   }
 }
