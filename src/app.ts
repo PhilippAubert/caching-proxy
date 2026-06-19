@@ -15,7 +15,7 @@ server.get("/{*splat}", async (req: Request, res: Response) => {
         const path = splatValue || ""; 
 
         if (!path || path.length === 0) {
-            res.status(200).json({ message: "Caching-Proxy läuft!" });
+            res.status(200).json({ message: "Caching-Proxy running!" });
             return;
         }
 
