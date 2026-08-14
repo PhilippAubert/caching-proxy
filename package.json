@@ -4,9 +4,10 @@
   "description": "A caching server based on",
   "main": "dist/app.js",
   "scripts": {
+    "watch": "tsc-watch --project tsconfig.json --noClear",
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "tsc-watch --project tsconfig.json --onSuccess \"nodemon dist/bin/www.js\"",
+    "dev": "tsc-watch --project tsconfig.json --onSuccess \"nodemon dist/bin/www.js --\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,10 +24,20 @@
   "dependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
+    "axios": "^1.14.0",
+    "commander": "^15.0.0",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "nodemon": "^3.1.14",
+    "redis": "^5.11.0",
     "tsc-watch": "^7.2.0",
     "typescript": "^6.0.2"
+  },
+  "devDependencies": {
+    "tsc-watch": "7.2.0"
+  },
+  "type": "module",
+  "bin": {
+    "caching-proxy": "./dist/bin/www.js"
   }
 }
