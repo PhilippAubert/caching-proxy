@@ -2,7 +2,13 @@
 
 import express from "express";
 import { options } from "./services/cliService.js";
-import { handleCacheProxy } from "./controllers/proxyController.js";
+import { handleCacheProxy, clearCacheIfFlagPresent } from "./controllers/proxyController.js";
+import { redisClient } from "./services/redisService.js";
+
+if (!options["origin"]) {
+    console.error("Error: --origin <url> is required to start the server.");
+    process.exit(1);
+}
 
 const server = express();
 server.use(express.json());
@@ -11,4 +17,18 @@ const port = options["port"] ? Number(options["port"]) : 3000;
 
 server.get("/{*splat}", handleCacheProxy);
 
-server.listen(port, () => console.log(`server listening on http://localhost:${port}`));
+try {
+    await redisClient.connect();
+    await redisClient.ping();
+
+    await clearCacheIfFlagPresent();
+
+    server.listen(port, () => {
+        console.log(`Server listening on http://localhost:${port}`);
+        console.log(`Proxying traffic to: ${options["origin"]}`);
+    });
+
+} catch (err) {
+    console.error("Critical: Server failed to start!", err);
+    process.exit(1);
+}

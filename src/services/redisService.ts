@@ -7,10 +7,7 @@ redisClient.on("error", (err) => {
 });
 
 redisClient.on("ready", () => {
-    console.log("Redis Client Started!!")
+    console.log("Redis Client Started!!");
 });
 
-await redisClient.connect();
-await redisClient.ping();
-
-export { redisClient }
+export { redisClient };
