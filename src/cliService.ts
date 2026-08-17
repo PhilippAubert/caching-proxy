@@ -1,12 +1,9 @@
 import { Command } from "commander";
 import dotenv from "dotenv"; 
 
-
 dotenv.config();
 
 const cliTool = new Command();
-
-console.log("HERE, ", process.env["TARGET_URL"])
 
 cliTool
     .name("caching-proxy")

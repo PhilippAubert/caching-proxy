@@ -1,7 +1,24 @@
 #!/usr/bin/node
 
 import express, { type Request, type Response } from "express";
+import redis from "redis";
 import { options } from "./cliService.js";
+import type { RedisKey } from "./types.js";
+
+const redisClient = redis.createClient();
+
+(async () => {
+    redisClient.on("error", (err) => {
+        console.error("REDIS CLIENT ERROR", err);
+    });
+
+    redisClient.on("ready", () => {
+        console.log("Redis Client Started!!")
+    });
+
+    await redisClient.connect();
+    await redisClient.ping();
+})();
 
 const server = express();
 server.use(express.json());
@@ -20,25 +37,32 @@ server.get("/{*splat}", async (req: Request, res: Response) => {
             return;
         }
         
-        const dummyData = await fetch(`${origin}/${path}`);
-        const data = await dummyData.json();
-        
-        /**
-         * redis: key-value pair
-         * also: redisKey={
-         *      port: number
-         *      ulr: URL
-         * }
-         * value: response:body! 
-         */
+        const key: RedisKey = {
+            "port": `${port}`,
+            "url": `${origin}/${path}`
+        }
 
-        res
-            .status(200)
-            .json(data);
+        const redisKey = JSON.stringify(key);
+        const ownedByRedis = await redisClient.get(redisKey); 
+
+        if (ownedByRedis){
+            const cachedData = JSON.parse(ownedByRedis);
+            res.status(200).json(cachedData);
+            return;
+        } 
+
+        const response = await fetch(`${origin}/${path}`);
+
+        if (!response.ok){
+            res.status(response.status).send("Some error fetching the data")
+            return;
+        }
+
+        const data = await response.json();
+        await redisClient.set(redisKey, JSON.stringify(data));
+        res.status(200).json(data);
     } catch (e) {
-        res
-            .status(500)
-            .send("Something's off!");
+        res.status(500).send("Something's off!");
     }
 });
 

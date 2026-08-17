@@ -1,20 +1,21 @@
-version: "5.4"
 services:
-  redis: 
-    image: redis:8.10.0
+  redis:
+    image: redis:6.0.7
+    container_name: redis
     restart: always
     volumes:
       - redis_volume_data:/data
-    ports: 
+    ports:
       - 6379:6379
-  redis_insight: 
-    image: redislabs/redisinsight:latest
+  redis_insight:
+    image: redislabs/redisinsight:1.14.0
     container_name: redis_insight
     restart: always
-    ports: 
+    ports:
       - 8001:8001
-    volumes: 
+    volumes:
       - redis_insight_volume_data:/db
+
 volumes:
   redis_volume_data:
-  redis_insight_volume__data:
+  redis_insight_volume_data:
