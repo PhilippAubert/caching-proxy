@@ -10,21 +10,35 @@ const port = options["port"] ? Number(options["port"]) : 3000;
 const origin = options["origin"];
 
 server.get("/{*splat}", async (req: Request, res: Response) => {
-
     try {
         const path = req.params["splat"] || "";
-
+        
         if (!path || path.length === 0) {
-            res.status(200).json({ message: "Caching-Proxy running!" });
+            res
+            .status(200)
+            .json({ message: "Caching-Proxy running!" });
             return;
         }
-
+        
         const dummyData = await fetch(`${origin}/${path}`);
         const data = await dummyData.json();
-        res.status(200).json(data);
+        
+        /**
+         * redis: key-value pair
+         * also: redisKey={
+         *      port: number
+         *      ulr: URL
+         * }
+         * value: response:body! 
+         */
+
+        res
+            .status(200)
+            .json(data);
     } catch (e) {
-        console.error(e);
-        res.status(500).send("Something's off!");
+        res
+            .status(500)
+            .send("Something's off!");
     }
 });
 
