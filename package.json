@@ -38,6 +38,6 @@
   },
   "type": "module",
   "bin": {
-    "caching-proxy": "./dist/bin/www.js"
+    "caching-proxy": "./dist/app.js" 
   }
 }

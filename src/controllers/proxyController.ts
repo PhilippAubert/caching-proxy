@@ -12,6 +12,8 @@ export const clearCacheIfFlagPresent = async (): Promise<void> => {
         try {
             await redisClient.flushDb();
             console.log("Redis-Cache cleared successfully!");
+            await redisClient.quit();
+            process.exit(0);
         } catch (err) {
             console.error("Failed to clear cache on startup:", err);
         }

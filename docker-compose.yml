@@ -1,21 +1,38 @@
 services:
-  	redis:
-    	image: redis:6.0.7
-    	container_name: redis
-    	restart: always
-    	volumes:
-      		- redis_volume_data:/data
-    	ports:
-      		- 6379:6379
-  	redis_insight:
-    	image: redislabs/redisinsight:1.14.0
-    	container_name: redis_insight
-    	restart: always
-    	ports:
-      		- 8001:8001
-    	volumes:
-      		- redis_insight_volume_data:/db
+  redis:
+    image: redis:6.0.7
+    container_name: redis
+    restart: always
+    volumes:
+      - redis_volume_data:/data
+    ports:
+      - 6379:6379
+
+  redis_insight:
+    image: redislabs/redisinsight:1.14.0
+    container_name: redis_insight
+    restart: always
+    ports:
+      - 8001:8001
+    volumes:
+      - redis_insight_volume_data:/db
+
+  caching_proxy:
+    build: 
+      context: . 
+      dockerfile: Dockerfile.dev
+    container_name: caching_proxy
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:${PORT}" 
+    environment:
+      - REDIS_URL=redis://redis:6379
+    command: tsx watch src/app.ts --port ${PORT} --origin ${TARGET_URL}
+    depends_on:
+      - redis
 
 volumes:
-  	redis_volume_data:
-  	redis_insight_volume_data:
+  redis_volume_data:
+  redis_insight_volume_data:

@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 
 import express from "express";
 import { options } from "./services/cliService.js";
@@ -13,7 +13,7 @@ if (!options["origin"]) {
 const server = express();
 server.use(express.json());
 
-const port = options["port"] ? Number(options["port"]) : 3000;
+const port = options["port"] ? Number(options["port"]) : 4000;
 
 server.get("/{*splat}", handleCacheProxy);
 
@@ -23,10 +23,11 @@ try {
 
     await clearCacheIfFlagPresent();
 
-    server.listen(port, () => {
-        console.log(`Server listening on http://localhost:${port}`);
+    server.listen(port, "0.0.0.0", () => {
+        console.log(`Server listening on http://0.0.0:${port}`);
         console.log(`Proxying traffic to: ${options["origin"]}`);
-    });
+    }
+);
 
 } catch (err) {
     console.error("Critical: Server failed to start!", err);
