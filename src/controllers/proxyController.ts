@@ -1,6 +1,8 @@
 import { type Request, type Response } from "express";
+
 import { redisClient } from "../services/redisService.js";
 import { options } from "../services/cliService.js";
+
 import type { RedisKey } from "../types.js";
 
 const port = options["port"] ? Number(options["port"]) : 3000;
