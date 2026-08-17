@@ -21,8 +21,8 @@ try {
     await redisClient.connect();
     await redisClient.ping();
 
-    server.listen(port, "0.0.0.0", () => {
-        console.log(`Server listening on http://localhost:${port}`);
+    server.listen(port, () => {
+        console.log(`Server listening internally on port ${port}`);
         console.log(`Proxying traffic to: ${options["origin"]}`);
     });
 } catch (err) {
