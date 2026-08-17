@@ -2,8 +2,10 @@
 
 import express, { type Request, type Response } from "express";
 import redis from "redis";
-import { options } from "./cliService.js";
+
 import type { RedisKey } from "./types.js";
+
+import { options } from "./cliService.js";
 
 const redisClient = redis.createClient();
 
@@ -47,7 +49,7 @@ server.get("/{*splat}", async (req: Request, res: Response) => {
 
         if (ownedByRedis){
             const cachedData = JSON.parse(ownedByRedis);
-            res.status(200).json(cachedData);
+            res.status(200).set("X-Cache", "HIT").json(cachedData);
             return;
         } 
 
@@ -59,8 +61,8 @@ server.get("/{*splat}", async (req: Request, res: Response) => {
         }
 
         const data = await response.json();
-        await redisClient.set(redisKey, JSON.stringify(data));
-        res.status(200).json(data);
+        await redisClient.set(redisKey, JSON.stringify(data), { EX:300 });
+        res.status(200).set("X-Cache", "MISS").json(data);
     } catch (e) {
         res.status(500).send("Something's off!");
     }
