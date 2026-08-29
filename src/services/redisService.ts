@@ -1,16 +1,17 @@
 import redis from "redis";
 
-const redisClient = redis.createClient();
+const redisUrl = process.env["REDIS_URL"] || "redis://localhost:6379";
+
+const redisClient = redis.createClient({
+    url:redisUrl
+});
 
 redisClient.on("error", (err) => {
     console.error("REDIS CLIENT ERROR", err);
 });
 
 redisClient.on("ready", () => {
-    console.log("Redis Client Started!!")
+    console.log("Redis Client Started!!");
 });
 
-await redisClient.connect();
-await redisClient.ping();
-
-export { redisClient }
+export { redisClient };
