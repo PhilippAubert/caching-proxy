@@ -5,7 +5,8 @@ import type { RedisKey } from "../types.js";
 export const createCacheProxyHandler = (port: number, origin: string) => {
     return async (req: Request, res: Response): Promise<void> => {
         try {
-            const path = req.params[0] || "";
+            const rawPath = req.params["any"];
+            const path = Array.isArray(rawPath) ? rawPath.join("/") : (rawPath || "");
             
             if (!path || path.trim() === "") {
                 res.status(200).json({ message: "Caching-Proxy running!" });
@@ -29,7 +30,10 @@ export const createCacheProxyHandler = (port: number, origin: string) => {
 
             if (ownedByRedis) {
                 const cachedData = JSON.parse(ownedByRedis);
-                res.status(200).set("X-Cache", "HIT").json(cachedData);
+                res.status(200)
+                   .set("X-Cache", "HIT")
+                   .set("Content-Type", cachedData.contentType)
+                   .send(cachedData.body);
                 return;
             } 
 
@@ -40,11 +44,20 @@ export const createCacheProxyHandler = (port: number, origin: string) => {
                 return;
             }
 
-            const data = await response.json();
+            const bodyText = await response.text();
+            const contentType = response.headers.get("content-type") || "text/plain";
             
-            await redisClient.set(redisKey, JSON.stringify(data));
+            const cachePayload = {
+                contentType: contentType,
+                body: bodyText
+            };
             
-            res.status(200).set("X-Cache", "MISS").json(data);
+            await redisClient.set(redisKey, JSON.stringify(cachePayload));
+            
+            res.status(200)
+               .set("X-Cache", "MISS")
+               .set("Content-Type", contentType)
+               .send(bodyText);
 
         } catch (e) {
             console.error("Proxy Error:", e);

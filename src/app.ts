@@ -10,7 +10,7 @@ const startServer = async (port: number, origin: string): Promise<void> => {
     
     server.use(express.json());
 
-    server.all("*", createCacheProxyHandler(port, origin));
+    server.all("*any", createCacheProxyHandler(port, origin));
 
     try {
         await redisClient.connect();
