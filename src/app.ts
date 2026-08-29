@@ -1,31 +1,30 @@
 #!/usr/bin/env node
 
-import express from "express";
-import { options } from "./services/cliService.js"; 
-import { handleCacheProxy } from "./controllers/proxyController.js";
+import express, { type Application } from "express";
+import { runCLI } from "./services/cliService.js"; 
+import { createCacheProxyHandler } from "./controllers/proxyController.js";
 import { redisClient } from "./services/redisService.js";
 
-if (!options["origin"]) {
-    console.error("Error: --origin <url> is required to start the server.");
-    process.exit(1);
-}
+const startServer = async (port: number, origin: string): Promise<void> => {
+    const server: Application = express();
+    
+    server.use(express.json());
 
-const server = express();
-server.use(express.json());
+    server.all("*", createCacheProxyHandler(port, origin));
 
-const port = options["port"] ? Number(options["port"]) : 4000;
+    try {
+        await redisClient.connect();
+        await redisClient.ping();
 
-server.get("/{*splat}", handleCacheProxy);
+        server.listen(port, () => {
+            console.log("caching proxy is up and running");
+            console.log(`   - listening locally on port: ${port}`);
+            console.log(`   - forwarding all traffic to: ${origin}`);
+        });
+    } catch (err) {
+        console.error("critical error starting the server!", err);
+        process.exit(1);
+    }
+};
 
-try {
-    await redisClient.connect();
-    await redisClient.ping();
-
-    server.listen(port, () => {
-        console.log(`Server listening internally on port ${port}`);
-        console.log(`Proxying traffic to: ${options["origin"]}`);
-    });
-} catch (err) {
-    console.error("Critical: Server failed to start!", err);
-    process.exit(1);
-}
+runCLI(startServer);

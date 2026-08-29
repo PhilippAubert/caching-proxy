@@ -1,20 +1,37 @@
-import { Command } from "commander";
 import dotenv from "dotenv"; 
+import { Command } from "commander";
 
 import { redisClient } from "./redisService.js";
+import type { CliStartOptions, StartServerCallback } from "../types.js";
 
 dotenv.config();
 
-const cliTool = new Command();
+export const runCLI = (startServerCallback: StartServerCallback): void => {
+    
+    const cliTool = new Command();
 
-cliTool
-    .name("caching-proxy")
-    .allowExcessArguments(true)
-    .option("--port <number>", "Port for the proxy server", (val) => parseInt(val, 10), parseInt(process.env["PORT"] || "3000", 10))   
-    .option("--origin <string>", "Origin URL to redirect to", process.env["TARGET_URL"])
-    .option("--clear-cache", "Clear all keys from the Redis cache")
-    .action(async (opts) => {
-        if (opts["clear-cache"]) {
+    cliTool
+        .name("caching-proxy")
+        .description("CLI tool for caching proxy and cache management");
+
+    cliTool
+        .command("start", { isDefault: true })
+        .description("Startet eine Proxy-Instanz")
+        .requiredOption("-p, --port <number>", "Port für diese Proxy-Instanz", (val) => parseInt(val, 10))
+        .requiredOption("-o, --origin <string>", "Ziel-URL für diese Proxy-Instanz")
+        .action(async (opts: CliStartOptions) => {
+            if (isNaN(opts.port)) {
+                console.error("Error: invalid port number");
+                process.exit(1);
+            }
+            
+            await startServerCallback(opts.port, opts.origin);
+        });
+
+    cliTool
+        .command("clear-cache")
+        .description("empties the whole cli-cache")
+        .action(async () => {
             try {
                 await redisClient.connect();
                 await redisClient.flushDb();
@@ -25,10 +42,7 @@ cliTool
                 console.error("Error clearing the cache:", err);
                 process.exit(1);
             }
-        }
-    });
+        });
 
-await cliTool.parseAsync(process.argv); 
-
-export const options = cliTool.opts();
-export default cliTool;
+    cliTool.parseAsync(process.argv);
+};
