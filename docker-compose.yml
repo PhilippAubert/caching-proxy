@@ -29,7 +29,7 @@ services:
       - "${PORT}" 
     environment:
       - REDIS_URL=redis://redis:6379
-    command: npx tsx watch app.ts --port ${PORT} --origin ${TARGET_URL}
+    command: npx tsx watch src/app.ts --port ${PORT} --origin ${TARGET_URL}
     volumes:
       - .:/app
       - /app/node_modules
